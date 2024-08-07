@@ -10,11 +10,12 @@ const TicketsFilterForm: React.FC<FilterFormProps> = ({ onFilter }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    alert('検索完了')
     onFilter(query, date);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4 flex space-x-4">
+    <form onSubmit={handleSubmit} className="mb-4 space-x-4">
       <input
         type="text"
         placeholder="関連ワードで検索"
@@ -31,7 +32,7 @@ const TicketsFilterForm: React.FC<FilterFormProps> = ({ onFilter }) => {
       <span className='text-gray-400'>
       以降
       </span>
-      <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+      <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600">
         絞り込み
       </button>
     </form>
