@@ -8,30 +8,31 @@ type Ticket = {
     id: number;
     imagePath: string;
     title: string;
-    date: string;
+    date: Date;
     price: number;
     where: string;
-  };
+};
+
+type FilterFunction = (query: string, date: Date | null) => void;
 
 const TicketsPage: React.FC = () => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [allTickets, setAllTickets] = useState<Ticket[]>([]);
+  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTickets = async (query = '', date = '') => {
+  const fetchTickets = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
-    const url = new URL('/api/getTicketList', window.location.origin);
-    if (query) url.searchParams.append('query', query);
-    if (date) url.searchParams.append('date', date);
 
     try {
-      const response = await fetch(url.toString());
+      const response = await fetch('http://localhost:8080/api/getConcertList/');
       if (!response.ok) {
         throw new Error('データの取得に失敗しました');
       }
-      const data = await response.json();
-      setTickets(data);
+      const data: Ticket[] = await response.json();
+      setAllTickets(data);
+      setFilteredTickets(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : '予期せぬエラーが発生しました');
     } finally {
@@ -39,24 +40,31 @@ const TicketsPage: React.FC = () => {
     }
   };
 
-  //初回レンダリング
+  const filterTickets: FilterFunction = (query, date) => {
+    const filtered = allTickets.filter(ticket =>
+      ticket.title.toLowerCase().includes(query.toLowerCase()) &&
+      (!date || ticket.date >= date)
+    );
+    setFilteredTickets(filtered);
+  };
+
   useEffect(() => {
     fetchTickets();
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="p-4 mx-8 flex items-center justify-center bg-indigo-100 rounded-lg shadow-md">
-        <TicketsFilterForm onFilter={fetchTickets}/>
+      <div className="p-4 flex items-center justify-center bg-indigo-100 rounded-lg shadow-md">
+        <TicketsFilterForm onFilter={filterTickets}/>
       </div>
       <div className='flex items-center justify-center my-6'>
         <h2>チケット一覧</h2>
         {isLoading ? (
-          <div>読み込み中...</div>
+          <p>読み込み中...</p>
         ) : error ? (
-          <div className="text-red-500">{error}</div>
+          <p className="text-red-500">{error}</p>
         ) : (
-          tickets.map(ticket => (
+          filteredTickets.map(ticket => (
             <TicketItem
               key={ticket.id}
               id={ticket.id}
